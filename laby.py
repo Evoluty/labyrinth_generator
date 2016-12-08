@@ -77,7 +77,7 @@ def walls_splitting():
     max_size = lab[0].size
 
     for j in range(0, max_size):
-        for i in range(1, max_size):
+        for i in range(0, max_size):
             if lab[i, j] != lab[i - 1, j]:
                 couple = (i, j)
                 res[0].append(couple)
@@ -102,52 +102,20 @@ def open_next_wall():
 
         x = vertical_walls[number][0]
         y = vertical_walls[number][1]
+
+        x2 = x - 1
+        y2 = y
     else:
         number = random.randint(0, len(horizontal_walls) - 1)
 
         x = horizontal_walls[number][0]
         y = horizontal_walls[number][1]
 
+        x2 = x
+        y2 = y - 1
+
     c1 = (x, y)
-
-    # Check if corner
-    if x == 0 and y == 0:
-        direction = random.choice([2, 3])
-    elif x == 0 and y == max_size:
-        direction = random.choice([1, 2])
-    elif x == max_size and y == 0:
-        direction = random.choice([3, 4])
-    elif x == max_size and y == max_size:
-        direction = random.choice([1, 4])
-    # Check if edge
-    elif x == 0:
-        direction = random.choice([1, 2, 3])
-    elif x == max_size:
-        direction = random.choice([1, 3, 4])
-    elif y == 0:
-        direction = random.choice([2, 3, 4])
-    elif y == max_size:
-        direction = random.choice([1, 2, 4])
-    # Else go everywhere
-    else:
-        direction = random.randint(0, 5)
-
-    # TOP
-    if direction == 1:
-        c2 = (x, y - 1)
-        hor_walls[x, y] = 1
-    # RIGHT
-    elif direction == 2:
-        c2 = (x + 1, y)
-        ver_walls[x + 1, y] = 1
-    # BOTTOM
-    elif direction == 3:
-        c2 = (x, y + 1)
-        hor_walls[x, y + 1] = 1
-    # LEFT
-    else:
-        c2 = (x - 1, y)
-        ver_walls[x, y] = 1
+    c2 = (x2, y2)
 
     set_path_min_value(c1, c2)
 
