@@ -140,12 +140,14 @@ def draw_lab():
     for j in range(0, size_mat + 1):
         for i in range(0, size_mat):
             if ver_walls.item(i, j) == 0:
-                canvas.create_line(j * size_line, i * size_line-5, j * size_line, i * size_line + size_line+5, width=10)
+                canvas.create_line(j * size_line, i * size_line - 5, j * size_line, i * size_line + size_line + 5,
+                                   width=10)
 
     for j in range(0, size_mat):
         for i in range(0, size_mat + 1):
             if hor_walls.item(i, j) == 0:
-                canvas.create_line(j * size_line-5, i * size_line, j * size_line + size_line+5, i * size_line, width=10)
+                canvas.create_line(j * size_line - 5, i * size_line, j * size_line + size_line + 5, i * size_line,
+                                   width=10)
 
     canvas.pack()
     w.mainloop()
