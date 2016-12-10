@@ -15,6 +15,7 @@ from tkinter import *
 lab = None
 ver_walls = None
 hor_walls = None
+size_win = 1000
 
 
 # Check if lab contains only zeros
@@ -127,27 +128,29 @@ def open_next_wall():
 
 # Draw the lab with PyQt
 def draw_lab():
-    global lab, ver_walls, hor_walls
+    global lab, ver_walls, hor_walls, size_win
 
     w = Tk()
 
-    height = 1000
+    width_l = size_win/100
     size_mat = lab.shape[0]
-    size_line = 1000 / size_mat
+    size_line = size_win / size_mat
 
-    canvas = Canvas(w, width=height, height=height, background='white')
+    canvas = Canvas(w, width=size_win, height=size_win, background='white')
 
     for j in range(0, size_mat + 1):
         for i in range(0, size_mat):
             if ver_walls.item(i, j) == 0:
-                canvas.create_line(j * size_line, i * size_line - 5, j * size_line, i * size_line + size_line + 5,
-                                   width=10)
+                canvas.create_line(j * size_line, i * size_line - (width_l / 2), j * size_line,
+                                   i * size_line + size_line + (width_l / 2),
+                                   width=width_l)
 
     for j in range(0, size_mat):
         for i in range(0, size_mat + 1):
             if hor_walls.item(i, j) == 0:
-                canvas.create_line(j * size_line - 5, i * size_line, j * size_line + size_line + 5, i * size_line,
-                                   width=10)
+                canvas.create_line(j * size_line - (width_l / 2), i * size_line,
+                                   j * size_line + size_line + (width_l / 2), i * size_line,
+                                   width=width_l)
 
     canvas.pack()
     w.mainloop()
