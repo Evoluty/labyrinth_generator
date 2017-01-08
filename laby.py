@@ -16,7 +16,7 @@ from threading import Thread
 lab = None
 ver_walls = None
 hor_walls = None
-size_win = 1000
+size_win = 800
 
 
 # Check if lab contains only zeros
@@ -139,6 +139,38 @@ def draw_lab():
 
     canvas = Canvas(w, width=size_win, height=size_win, background='white')
 
+    # We draw the path if exists
+    for j in range(0, size_mat):
+        for i in range(0, size_mat):
+            if lab.item(i, j) == 3:
+                # Path
+                canvas.create_rectangle(j*size_line+(width_l/2)-1, i*size_line+(width_l/2)-1,
+                                        (j+1)*size_line-(width_l/2), (i+1)*size_line-(width_l/2),
+                                        fill='#FAAD32', outline="white")
+                # We complete vertical white spaces
+                if i > 0 and lab.item(i-1, j) == 3:
+                    canvas.create_line(j * size_line + (width_l / 2), i * size_line,
+                                       j * size_line + size_line - (width_l / 2), i * size_line,
+                                       width=width_l+2, fill="#FAAD32")
+                # We complete horizontal white spaces
+                if j > 0 and lab.item(i, j-1) == 3:
+                    canvas.create_line(j * size_line, i * size_line + (width_l / 2), j * size_line,
+                                       i * size_line + size_line - (width_l / 2),
+                                       width=width_l+2, fill="#FAAD32")
+            # Start in green
+            if (i, j) == get_start():
+                canvas.create_rectangle(j * size_line + (width_l / 2)-2, i * size_line + (width_l / 2)-2,
+                                        (j + 1) * size_line - (width_l / 2)+2,
+                                        (i + 1) * size_line - (width_l / 2)+2,
+                                        fill='green', outline="white")
+            # End in red
+            elif (i, j) == get_exit():
+                canvas.create_rectangle(j * size_line + (width_l / 2)-2, i * size_line + (width_l / 2)-2,
+                                        (j + 1) * size_line - (width_l / 2 + 1)+2,
+                                        (i + 1) * size_line - (width_l / 2 + 1)+2,
+                                        fill='red', outline="white")
+
+    # We draw vertical lines
     for j in range(0, size_mat + 1):
         for i in range(0, size_mat):
             if ver_walls.item(i, j) == 0:
@@ -146,6 +178,7 @@ def draw_lab():
                                    i * size_line + size_line + (width_l / 2),
                                    width=width_l)
 
+    # We draw horizontal lines
     for j in range(0, size_mat):
         for i in range(0, size_mat + 1):
             if hor_walls.item(i, j) == 0:
@@ -180,11 +213,11 @@ def get_exit():
 
     for y in range(0, size_mat):
         if hor_walls.item(size_mat, y) == 1:
-            return size_mat, y
+            return size_mat-1, y
 
     for x in range(0, size_mat):
         if ver_walls.item(x, size_mat) == 1:
-            return x, size_mat
+            return x, size_mat-1
 
     return None
 
@@ -261,11 +294,11 @@ def contains_exit(x, y, di):
 def get_exit_path(x, y):
     global lab, hor_walls, ver_walls
 
+    lab.itemset(x, y, 3)
+
     # We are on the exit
     if is_exit(x, y):
         return [(x, y)]
-
-    lab.itemset(x, y, 3)
 
     # We are in the labyrinth
     if contains_exit(x, y, "Top"):
@@ -285,7 +318,7 @@ def main():
     global lab, hor_walls, ver_walls
 
     # size = int(input("Enter the size of the labyrinth: "))
-    size = 10
+    size = 30
 
     init_matrix(size)
 
@@ -295,20 +328,12 @@ def main():
         open_next_wall()
         i += 1
 
-    print()
-    print(hor_walls)
-    print()
-    print(ver_walls)
-    print()
-    print()
-
-    thread = Thread(target=draw_lab, args=())
-    thread.start()
+    draw_lab()
 
     start = get_start()
-    print(get_exit_path(start[0], start[1]))
+    get_exit_path(start[0], start[1])
 
-    thread.join()
+    draw_lab()
 
 
 # Launch main when file is called
