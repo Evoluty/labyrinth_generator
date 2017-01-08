@@ -225,8 +225,6 @@ def contains_exit(x, y, di):
         if hor_walls.item(x, y) == 1 and contains_exit(x - 1, y, "Right"):
             return True
 
-        return False
-
     elif di == "Bot":
         if x + 1 >= size_mat:
             return False
@@ -236,8 +234,6 @@ def contains_exit(x, y, di):
             return True
         if hor_walls.item(x + 1, y) == 1 and contains_exit(x + 1, y, "Right"):
             return True
-
-        return False
 
     elif di == "Left":
         if y - 1 < 0:
@@ -249,8 +245,6 @@ def contains_exit(x, y, di):
         if ver_walls.item(x, y) == 1 and contains_exit(x, y - 1, "Left"):
             return True
 
-        return False
-
     elif di == "Right":
         if y + 1 >= size_mat:
             return False
@@ -261,10 +255,7 @@ def contains_exit(x, y, di):
         if ver_walls.item(x, y + 1) == 1 and contains_exit(x, y + 1, "Right"):
             return True
 
-        return False
-
-    else:
-        return False
+    return False
 
 
 def get_exit_path(x, y):
