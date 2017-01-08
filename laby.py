@@ -4,12 +4,13 @@ import numpy as np
 import random
 from tkinter import *
 
+from threading import Thread
+
 # ################# #
 # Convention: 		#
 # Wall closed = 0	#
 # Wall opened = 1	#
 # ################# #
-
 
 # Global var
 lab = None
@@ -132,7 +133,7 @@ def draw_lab():
 
     w = Tk()
 
-    width_l = size_win/100
+    width_l = size_win / 100
     size_mat = lab.shape[0]
     size_line = size_win / size_mat
 
@@ -156,11 +157,145 @@ def draw_lab():
     w.mainloop()
 
 
+def get_start():
+    global lab, ver_walls, hor_walls
+
+    size_mat = lab.shape[0]
+
+    for y in range(0, size_mat):
+        if hor_walls.item(0, y) == 1:
+            return 0, y
+
+    for x in range(0, size_mat):
+        if ver_walls.item(x, 0) == 1:
+            return x, 0
+
+    return None
+
+
+def get_exit():
+    global lab, ver_walls, hor_walls
+
+    size_mat = lab.shape[0]
+
+    for y in range(0, size_mat):
+        if hor_walls.item(size_mat, y) == 1:
+            return size_mat, y
+
+    for x in range(0, size_mat):
+        if ver_walls.item(x, size_mat) == 1:
+            return x, size_mat
+
+    return None
+
+
+def is_exit(x, y):
+    global lab, ver_walls, hor_walls
+
+    size_mat = lab.shape[0]
+
+    if x == size_mat - 1 and hor_walls.item(x + 1, y) == 1:
+        return True
+    elif y == size_mat - 1 and ver_walls.item(x, y + 1) == 1:
+        return True
+
+    return False
+
+
+def contains_exit(x, y, di):
+    global lab, ver_walls, hor_walls
+
+    size_mat = lab.shape[0]
+
+    if x < 0 or y < 0:
+        return False
+    elif x >= size_mat or y >= size_mat:
+        return False
+
+    elif is_exit(x, y):
+        return True
+
+    elif di == "Top":
+        if x - 1 < 0:
+            return False
+        if hor_walls.item(x, y) == 1 and contains_exit(x - 1, y, "Top"):
+            return True
+        if hor_walls.item(x, y) == 1 and contains_exit(x - 1, y, "Left"):
+            return True
+        if hor_walls.item(x, y) == 1 and contains_exit(x - 1, y, "Right"):
+            return True
+
+        return False
+
+    elif di == "Bot":
+        if x + 1 >= size_mat:
+            return False
+        if hor_walls.item(x + 1, y) == 1 and contains_exit(x + 1, y, "Bot"):
+            return True
+        if hor_walls.item(x + 1, y) == 1 and contains_exit(x + 1, y, "Left"):
+            return True
+        if hor_walls.item(x + 1, y) == 1 and contains_exit(x + 1, y, "Right"):
+            return True
+
+        return False
+
+    elif di == "Left":
+        if y - 1 < 0:
+            return False
+        if ver_walls.item(x, y) == 1 and contains_exit(x, y - 1, "Top"):
+            return True
+        if ver_walls.item(x, y) == 1 and contains_exit(x, y - 1, "Bot"):
+            return True
+        if ver_walls.item(x, y) == 1 and contains_exit(x, y - 1, "Left"):
+            return True
+
+        return False
+
+    elif di == "Right":
+        if y + 1 >= size_mat:
+            return False
+        if ver_walls.item(x, y + 1) == 1 and contains_exit(x, y + 1, "Top"):
+            return True
+        if ver_walls.item(x, y + 1) == 1 and contains_exit(x, y + 1, "Bot"):
+            return True
+        if ver_walls.item(x, y + 1) == 1 and contains_exit(x, y + 1, "Right"):
+            return True
+
+        return False
+
+    else:
+        return False
+
+
+def get_exit_path(x, y):
+    global lab, hor_walls, ver_walls
+
+    # We are on the exit
+    if is_exit(x, y):
+        return [(x, y)]
+
+    lab.itemset(x, y, 3)
+
+    # We are in the labyrinth
+    if contains_exit(x, y, "Top"):
+        next_path = get_exit_path(x - 1, y)
+    elif contains_exit(x, y, "Bot"):
+        next_path = get_exit_path(x + 1, y)
+    elif contains_exit(x, y, "Left"):
+        next_path = get_exit_path(x, y - 1)
+    else:
+        next_path = get_exit_path(x, y + 1)
+
+    return [(x, y)] + next_path
+
+
 # Main function of the program
 def main():
     global lab, hor_walls, ver_walls
 
-    size = int(input("Enter the size of the labyrinth: "))
+    # size = int(input("Enter the size of the labyrinth: "))
+    size = 10
+
     init_matrix(size)
 
     i = 0
@@ -169,7 +304,20 @@ def main():
         open_next_wall()
         i += 1
 
-    draw_lab()
+    print()
+    print(hor_walls)
+    print()
+    print(ver_walls)
+    print()
+    print()
+
+    thread = Thread(target=draw_lab, args=())
+    thread.start()
+
+    start = get_start()
+    print(get_exit_path(start[0], start[1]))
+
+    thread.join()
 
 
 # Launch main when file is called
