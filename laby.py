@@ -4,19 +4,14 @@ import numpy as np
 import random
 from tkinter import *
 
-from threading import Thread
-
-# ################# #
-# Convention: 		#
-# Wall closed = 0	#
-# Wall opened = 1	#
-# ################# #
-
 # Global var
 lab = None
 ver_walls = None
 hor_walls = None
 size_win = 800
+closed = 0
+opened = 1
+path = 2
 
 
 # Check if lab contains only zeros
@@ -36,14 +31,14 @@ def open_entrees(size):
         # Open top-bot
         cell_top = random.randint(0, size - 1)
         cell_bot = random.randint(0, size - 1)
-        hor_walls.itemset((0, cell_top), 1)
-        hor_walls.itemset((size, cell_bot), 1)
+        hor_walls.itemset((0, cell_top), opened)
+        hor_walls.itemset((size, cell_bot), opened)
     else:
         # Open left-right
         cell_left = random.randint(0, size - 1)
         cell_right = random.randint(0, size - 1)
-        ver_walls.itemset((cell_left, 0), 1)
-        ver_walls.itemset((cell_right, size), 1)
+        ver_walls.itemset((cell_left, 0), opened)
+        ver_walls.itemset((cell_right, size), opened)
 
 
 # Initialize lists
@@ -111,7 +106,7 @@ def open_next_wall():
         y = vertical_walls[number][1]
         x2 = x - 1
         y2 = y
-        ver_walls.itemset((y, x), 1)
+        ver_walls.itemset((y, x), opened)
     else:
         number = random.randint(0, len(horizontal_walls) - 1)
 
@@ -119,7 +114,7 @@ def open_next_wall():
         y = horizontal_walls[number][1]
         x2 = x
         y2 = y - 1
-        hor_walls.itemset((y, x), 1)
+        hor_walls.itemset((y, x), opened)
 
     c1 = (x, y)
     c2 = (x2, y2)
@@ -142,18 +137,18 @@ def draw_lab():
     # We draw the path if exists
     for j in range(0, size_mat):
         for i in range(0, size_mat):
-            if lab.item(i, j) == 3:
+            if lab.item(i, j) == path:
                 # Path
                 canvas.create_rectangle(j*size_line+(width_l/2)-1, i*size_line+(width_l/2)-1,
                                         (j+1)*size_line-(width_l/2), (i+1)*size_line-(width_l/2),
                                         fill='#FAAD32', outline="white")
                 # We complete vertical white spaces
-                if i > 0 and lab.item(i-1, j) == 3:
+                if i > 0 and lab.item(i-1, j) == path:
                     canvas.create_line(j * size_line + (width_l / 2), i * size_line,
                                        j * size_line + size_line - (width_l / 2), i * size_line,
                                        width=width_l+2, fill="#FAAD32")
                 # We complete horizontal white spaces
-                if j > 0 and lab.item(i, j-1) == 3:
+                if j > 0 and lab.item(i, j-1) == path:
                     canvas.create_line(j * size_line, i * size_line + (width_l / 2), j * size_line,
                                        i * size_line + size_line - (width_l / 2),
                                        width=width_l+2, fill="#FAAD32")
@@ -173,7 +168,7 @@ def draw_lab():
     # We draw vertical lines
     for j in range(0, size_mat + 1):
         for i in range(0, size_mat):
-            if ver_walls.item(i, j) == 0:
+            if ver_walls.item(i, j) == closed:
                 canvas.create_line(j * size_line, i * size_line - (width_l / 2), j * size_line,
                                    i * size_line + size_line + (width_l / 2),
                                    width=width_l)
@@ -181,7 +176,7 @@ def draw_lab():
     # We draw horizontal lines
     for j in range(0, size_mat):
         for i in range(0, size_mat + 1):
-            if hor_walls.item(i, j) == 0:
+            if hor_walls.item(i, j) == closed:
                 canvas.create_line(j * size_line - (width_l / 2), i * size_line,
                                    j * size_line + size_line + (width_l / 2), i * size_line,
                                    width=width_l)
@@ -196,11 +191,11 @@ def get_start():
     size_mat = lab.shape[0]
 
     for y in range(0, size_mat):
-        if hor_walls.item(0, y) == 1:
+        if hor_walls.item(0, y) == opened:
             return 0, y
 
     for x in range(0, size_mat):
-        if ver_walls.item(x, 0) == 1:
+        if ver_walls.item(x, 0) == opened:
             return x, 0
 
     return None
@@ -212,11 +207,11 @@ def get_exit():
     size_mat = lab.shape[0]
 
     for y in range(0, size_mat):
-        if hor_walls.item(size_mat, y) == 1:
+        if hor_walls.item(size_mat, y) == opened:
             return size_mat-1, y
 
     for x in range(0, size_mat):
-        if ver_walls.item(x, size_mat) == 1:
+        if ver_walls.item(x, size_mat) == opened:
             return x, size_mat-1
 
     return None
@@ -227,9 +222,9 @@ def is_exit(x, y):
 
     size_mat = lab.shape[0]
 
-    if x == size_mat - 1 and hor_walls.item(x + 1, y) == 1:
+    if x == size_mat - 1 and hor_walls.item(x + 1, y) == opened:
         return True
-    elif y == size_mat - 1 and ver_walls.item(x, y + 1) == 1:
+    elif y == size_mat - 1 and ver_walls.item(x, y + 1) == opened:
         return True
 
     return False
@@ -251,41 +246,41 @@ def contains_exit(x, y, di):
     elif di == "Top":
         if x - 1 < 0:
             return False
-        if hor_walls.item(x, y) == 1 and contains_exit(x - 1, y, "Top"):
+        if hor_walls.item(x, y) == opened and contains_exit(x - 1, y, "Top"):
             return True
-        if hor_walls.item(x, y) == 1 and contains_exit(x - 1, y, "Left"):
+        if hor_walls.item(x, y) == opened and contains_exit(x - 1, y, "Left"):
             return True
-        if hor_walls.item(x, y) == 1 and contains_exit(x - 1, y, "Right"):
+        if hor_walls.item(x, y) == opened and contains_exit(x - 1, y, "Right"):
             return True
 
     elif di == "Bot":
         if x + 1 >= size_mat:
             return False
-        if hor_walls.item(x + 1, y) == 1 and contains_exit(x + 1, y, "Bot"):
+        if hor_walls.item(x + 1, y) == opened and contains_exit(x + 1, y, "Bot"):
             return True
-        if hor_walls.item(x + 1, y) == 1 and contains_exit(x + 1, y, "Left"):
+        if hor_walls.item(x + 1, y) == opened and contains_exit(x + 1, y, "Left"):
             return True
-        if hor_walls.item(x + 1, y) == 1 and contains_exit(x + 1, y, "Right"):
+        if hor_walls.item(x + 1, y) == opened and contains_exit(x + 1, y, "Right"):
             return True
 
     elif di == "Left":
         if y - 1 < 0:
             return False
-        if ver_walls.item(x, y) == 1 and contains_exit(x, y - 1, "Top"):
+        if ver_walls.item(x, y) == opened and contains_exit(x, y - 1, "Top"):
             return True
-        if ver_walls.item(x, y) == 1 and contains_exit(x, y - 1, "Bot"):
+        if ver_walls.item(x, y) == opened and contains_exit(x, y - 1, "Bot"):
             return True
-        if ver_walls.item(x, y) == 1 and contains_exit(x, y - 1, "Left"):
+        if ver_walls.item(x, y) == opened and contains_exit(x, y - 1, "Left"):
             return True
 
     elif di == "Right":
         if y + 1 >= size_mat:
             return False
-        if ver_walls.item(x, y + 1) == 1 and contains_exit(x, y + 1, "Top"):
+        if ver_walls.item(x, y + 1) == opened and contains_exit(x, y + 1, "Top"):
             return True
-        if ver_walls.item(x, y + 1) == 1 and contains_exit(x, y + 1, "Bot"):
+        if ver_walls.item(x, y + 1) == opened and contains_exit(x, y + 1, "Bot"):
             return True
-        if ver_walls.item(x, y + 1) == 1 and contains_exit(x, y + 1, "Right"):
+        if ver_walls.item(x, y + 1) == opened and contains_exit(x, y + 1, "Right"):
             return True
 
     return False
@@ -294,7 +289,7 @@ def contains_exit(x, y, di):
 def get_exit_path(x, y):
     global lab, hor_walls, ver_walls
 
-    lab.itemset(x, y, 3)
+    lab.itemset(x, y, path)
 
     # We are on the exit
     if is_exit(x, y):
@@ -327,6 +322,12 @@ def main():
         print(i)
         open_next_wall()
         i += 1
+
+    print(hor_walls)
+    print()
+    print(ver_walls)
+    print()
+    print(lab)
 
     draw_lab()
 
